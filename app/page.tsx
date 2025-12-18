@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
 
-  const onAuth = () => {
-    router.push("/sign-in");
+  const onDashboard = () => {
+    router.push("/dashboard");
   };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b border-gray-200">
@@ -42,7 +43,7 @@ export default function Home() {
             <Button
               size="lg"
               className="px-8 cursor-pointer border bg-blue-500"
-              onClick={onAuth}
+              onClick={onDashboard}
             >
               Get Started
             </Button>
