@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/toggle-mode";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ export default function Home() {
             />
           </Link>
           <div className="flex items-center space-x-6">
+            <ModeToggle />
             <Link href="/sign-in">Sign In</Link>
             <Link href="/sign-up">Sign Up</Link>
           </div>
