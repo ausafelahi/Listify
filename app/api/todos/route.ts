@@ -7,14 +7,14 @@ export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   await connectDB();
 
-  const todos = await Todo.find({ userId }).sort({ createdAt: -1 });
+  const getTodo = await Todo.find({ userId }).sort({ createdAt: -1 });
 
-  return NextResponse.json(todos);
+  return NextResponse.json(getTodo);
 }
 
 export async function POST(req: Request) {
