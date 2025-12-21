@@ -1,5 +1,4 @@
 import connectDB from "@/lib/db";
-import { getDevAuthUser } from "@/lib/devAuth";
 import Todo from "@/models/Todo";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
@@ -8,7 +7,7 @@ export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await getDevAuthUser();
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -40,9 +39,13 @@ export async function PATCH(
   await connectDB();
 
   try {
-    const updateTodo = await Todo.findOneAndUpdate({ _id: id }, updateFields, {
-      new: true,
-    });
+    const updateTodo = await Todo.findOneAndUpdate(
+      { _id: id, userId },
+      updateFields,
+      {
+        new: true,
+      }
+    );
 
     if (!updateTodo) {
       return NextResponse.json({ message: "Todo not found" }, { status: 404 });
@@ -62,7 +65,7 @@ export async function DELETE(
   _: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await getDevAuthUser();
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -73,7 +76,7 @@ export async function DELETE(
   await connectDB();
 
   try {
-    const deleteTodo = await Todo.findOneAndDelete({ _id: id });
+    const deleteTodo = await Todo.findOneAndDelete({ _id: id, userId });
     if (!deleteTodo) {
       return NextResponse.json({ message: "Todo not found" }, { status: 404 });
     }

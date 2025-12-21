@@ -2,10 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import Todo from "@/models/Todo";
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
-import { getDevAuthUser } from "@/lib/devAuth";
 
 export async function GET() {
-  const { userId } = await getDevAuthUser();
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -13,13 +12,13 @@ export async function GET() {
 
   await connectDB();
 
-  const getTodo = await Todo.find({}).sort({ createdAt: -1 });
+  const getTodo = await Todo.find({ userId }).sort({ createdAt: -1 });
 
   return NextResponse.json(getTodo);
 }
 
 export async function POST(req: Request) {
-  const { userId } = await getDevAuthUser();
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
