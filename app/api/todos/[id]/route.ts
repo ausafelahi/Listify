@@ -14,24 +14,51 @@ export async function PATCH(
   }
 
   const { id } = await context.params;
-  const body = await req.json();
+  const { title, description, dueDate, status } = await req.json();
 
+  const updateFields: any = { updatedAt: new Date() };
+
+  if (title !== undefined) {
+    if (!title || title.trim().length < 3) {
+      return NextResponse.json(
+        { message: "Title should be at least 3 characters long" },
+        { status: 400 }
+      );
+    }
+    updateFields.title = title.trim();
+  }
+  if (description !== undefined) updateFields.description = description.trim();
+  if (dueDate !== undefined)
+    updateFields.dueDate = dueDate ? new Date(dueDate) : null;
+  if (status !== undefined) {
+    if (!["pending", "completed"].includes(status)) {
+      return NextResponse.json({ message: "Invalid status" }, { status: 400 });
+    }
+    updateFields.status = status;
+  }
   await connectDB();
 
-  const updateTodo = await Todo.findByIdAndUpdate(
-    id,
-    {
-      ...body,
-      updatedAt: new Date(),
-    },
-    { new: true }
-  );
+  try {
+    const updateTodo = await Todo.findOneAndUpdate(
+      { _id: id, userId },
+      updateFields,
+      {
+        new: true,
+      }
+    );
 
-  if (!updateTodo) {
-    return NextResponse.json({ message: "Todo not found" }, { status: 404 });
+    if (!updateTodo) {
+      return NextResponse.json({ message: "Todo not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updateTodo);
+  } catch (error) {
+    console.error("Error updating todo:", error);
+    return NextResponse.json(
+      { message: "Failed to update todo" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(updateTodo);
 }
 
 export async function DELETE(
@@ -48,11 +75,17 @@ export async function DELETE(
 
   await connectDB();
 
-  const deleteTodo = await Todo.findByIdAndDelete(id);
-
-  if (!deleteTodo) {
-    return NextResponse.json({ message: "Todo not found" }, { status: 404 });
+  try {
+    const deleteTodo = await Todo.findOneAndDelete({ _id: id, userId });
+    if (!deleteTodo) {
+      return NextResponse.json({ message: "Todo not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting todo:", error);
+    return NextResponse.json(
+      { message: "Failed to delete todo" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ success: true });
 }
