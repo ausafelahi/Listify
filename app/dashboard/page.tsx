@@ -1,4 +1,5 @@
 import Header from "./_components/Header";
+import TodoSection from "./_components/TodoSection";
 
 const Dashboard = () => {
   return (
@@ -13,6 +14,7 @@ const Dashboard = () => {
             Manage your tasks and to-do lists efficiently.
           </p>
         </div>
+        <TodoSection />
       </div>
     </div>
   );
