@@ -1,91 +1,39 @@
 import connectDB from "@/lib/db";
 import Todo from "@/models/Todo";
-import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export async function PATCH(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = await context.params;
-  const { title, description, dueDate, status } = await req.json();
-
-  const updateFields: any = { updatedAt: new Date() };
-
-  if (title !== undefined) {
-    if (!title || title.trim().length < 3) {
-      return NextResponse.json(
-        { message: "Title should be at least 3 characters long" },
-        { status: 400 }
-      );
-    }
-    updateFields.title = title.trim();
-  }
-  if (description !== undefined) updateFields.description = description.trim();
-  if (dueDate !== undefined)
-    updateFields.dueDate = dueDate ? new Date(dueDate) : null;
-  if (status !== undefined) {
-    if (!["pending", "completed"].includes(status)) {
-      return NextResponse.json({ message: "Invalid status" }, { status: 400 });
-    }
-    updateFields.status = status;
-  }
+export async function PATCH(req: Request, context: { params: { id: string } }) {
   await connectDB();
 
-  try {
-    const updateTodo = await Todo.findOneAndUpdate(
-      { _id: id, userId },
-      updateFields,
-      {
-        new: true,
-      }
-    );
+  const { id } = await context.params;
+  const body = await req.json();
 
-    if (!updateTodo) {
-      return NextResponse.json({ message: "Todo not found" }, { status: 404 });
-    }
+  const updatedTodo = await Todo.findByIdAndUpdate(
+    id,
+    { $set: body },
+    { new: true, runValidators: true }
+  );
 
-    return NextResponse.json(updateTodo);
-  } catch (error) {
-    console.error("Error updating todo:", error);
-    return NextResponse.json(
-      { message: "Failed to update todo" },
-      { status: 500 }
-    );
+  if (!updatedTodo) {
+    return NextResponse.json({ message: "Todo not found" }, { status: 404 });
   }
+
+  return NextResponse.json(updatedTodo);
 }
 
 export async function DELETE(
-  _: Request,
-  context: { params: Promise<{ id: string }> }
+  req: Request,
+  context: { params: { id: string } }
 ) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
+  await connectDB();
 
   const { id } = await context.params;
 
-  await connectDB();
+  const deleted = await Todo.findByIdAndDelete(id);
 
-  try {
-    const deleteTodo = await Todo.findOneAndDelete({ _id: id, userId });
-    if (!deleteTodo) {
-      return NextResponse.json({ message: "Todo not found" }, { status: 404 });
-    }
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting todo:", error);
-    return NextResponse.json(
-      { message: "Failed to delete todo" },
-      { status: 500 }
-    );
+  if (!deleted) {
+    return NextResponse.json({ message: "Todo not found" }, { status: 404 });
   }
+
+  return NextResponse.json({ success: true });
 }
