@@ -1,14 +1,10 @@
 import type { NextConfig } from "next";
 const path = require("path");
-module.exports = {
+
+const nextConfig: NextConfig = {
+  reactCompiler: true,
   turbopack: {
     root: path.join(__dirname, ".."),
   },
 };
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
-};
-
 export default nextConfig;

@@ -1,9 +1,12 @@
 import connectDB from "@/lib/db";
 import Todo from "@/models/Todo";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -12,8 +15,8 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
 
   await connectDB();
 
-  const { id } = await context.params;
-  const body = await req.json();
+  const { id } = await params;
+  const body = await request.json();
 
   const updatedTodo = await Todo.findByIdAndUpdate(
     id,
@@ -29,8 +32,8 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
 }
 
 export async function DELETE(
-  req: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
 
@@ -40,7 +43,7 @@ export async function DELETE(
 
   await connectDB();
 
-  const { id } = await context.params;
+  const { id } = await params;
 
   const deleted = await Todo.findByIdAndDelete(id);
 
