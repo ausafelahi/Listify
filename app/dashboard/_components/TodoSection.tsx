@@ -65,16 +65,31 @@ const TodoSection = () => {
 
   const updateTodo = async () => {
     if (!editingTodo) return;
-    await fetch(`/api/todos/${editingTodo._id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: editingTodo.title,
-        description: editingTodo.description,
-      }),
-    });
-    setEditingTodo(null);
-    fetchTodos();
+
+    if (editingTodo.title.trim().length < 3) return;
+
+    try {
+      const res = await fetch(`/api/todos/${editingTodo._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editingTodo.title,
+          description: editingTodo.description,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+
+      const updated = await res.json();
+
+      setTodos((prev) =>
+        prev.map((t) => (t._id === updated._id ? updated : t))
+      );
+
+      setEditingTodo(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const deleteTodo = async (id: string) => {
@@ -86,13 +101,24 @@ const TodoSection = () => {
 
   const toggleStatus = async (todo: Todo) => {
     const newStatus = todo.status === "pending" ? "completed" : "pending";
-    await fetch(`/api/todos/${todo._id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    fetchTodos();
+
+    try {
+      const res = await fetch(`/api/todos/${todo._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update status");
+
+      setTodos((prev) =>
+        prev.map((t) => (t._id === todo._id ? { ...t, status: newStatus } : t))
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Card>
