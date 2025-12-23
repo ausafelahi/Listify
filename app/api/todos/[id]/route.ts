@@ -1,8 +1,15 @@
 import connectDB from "@/lib/db";
 import Todo from "@/models/Todo";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function PATCH(req: Request, context: { params: { id: string } }) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   await connectDB();
 
   const { id } = await context.params;
@@ -25,6 +32,12 @@ export async function DELETE(
   req: Request,
   context: { params: { id: string } }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   await connectDB();
 
   const { id } = await context.params;
